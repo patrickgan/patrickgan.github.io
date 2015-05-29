@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title>How Long Does It Take?</title>
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<link rel="stylesheet" href="http://maxcdn.bootstrapcdn.com/bootstrap/3.2.0/css/bootstrap.min.css">
+	<style type="text/css">
+		body {
+			background-color: #F8F8F8;
+			text-align: center;
+		}
+		p {
+			margin-right: 100px;
+			margin-left: 100px;
+		}
+		p.note {
+			font-size: 12px;
+		}
+		div.padded {
+			padding-top: 32px;
+			padding-bottom: 32px;
+		}
+	</style>
+	<script>
+
+		var zero = {value: 0}
+		var countTarget = {value: 0};
+		var counter1, counter2;
+
+		/* Create two Timer variables with the following attributes: 
+		
+			value: The time to be displayed
+			clock: The clock display
+			button: The start button
+			defaultVal: The default value the stopwatch will reset to
+			ticking: A bit representing whether the clock is ticking
+			counter: The variable that represents the respective ticking function
+			func: The function the ticking function calls (i.e. does it go up or down?)
+
+		*/
+
+		var timer1 = {
+			value: 0, clock: "clock1", button: "startUp", defaultVal: zero, 
+			ticking: 0, counter: counter1, func: countUp
+		};
+		var timer2 = {
+			value: 0, clock: "clock2", button: "startDown", defaultVal: countTarget,
+			ticking: 0, counter: counter2, func: countDown
+		};
+		
+		// Sets the countTarget var to the value in the input field
+		function setCountTarget() {	
+			var input = document.getElementById("countTargetInput");
+			if (isNaN(parseInt(input.value))) {
+				window.alert("You must enter a non-negative number.");
+				input.value = countTarget.value;
+				console.log("input.value reverted to " + input.value)
+			} else {
+				countTarget.value = parseInt(input.value);
+				console.log("countTarget.value = " + countTarget.value);
+				reset(timer1);
+				reset(timer2);
+			}
+		}
+
+		function countUp(timer) {
+			if (timer.value < countTarget.value) {
+				document.getElementById(timer.clock).innerHTML=displayTime(++timer.value);
+				if (timer.value > countTarget.value - 4) {
+					document.getElementById(timer.clock).style.color = "red";
+					if (timer.value == countTarget.value) {
+						countUp(timer);
+					}
+				}
+			} else {
+				timer.ticking = 0;
+				clearInterval(timer.counter);
+				document.getElementById(timer.clock).style.color = "blue";
+				document.getElementById(timer.button).innerHTML = "Start";
+				document.getElementById(timer.button).disabled = true;
+			}
+		}
+
+		function countDown(timer) {
+			if (timer.value > zero.value) {
+				document.getElementById(timer.clock).innerHTML=displayTime(--timer.value);
+				if (timer.value < zero.value + 4) {
+					document.getElementById(timer.clock).style.color = "red";
+					if (timer.value == zero.value) {
+						countDown(timer);
+					}
+				}
+			} else {
+				timer.ticking = 0;
+				clearInterval(timer.counter);
+				document.getElementById(timer.clock).style.color = "blue";
+				document.getElementById(timer.button).innerHTML = "Start";
+				document.getElementById(timer.button).disabled = true;
+			}
+		}
+
+		function reset(timer) {
+			timer.value = timer.defaultVal.value;
+			timer.ticking = 1;
+			start(timer);
+			console.log(timer.clock + " set to " + timer.value);
+			document.getElementById(timer.clock).innerHTML = displayTime(timer.value);
+			document.getElementById(timer.button).disabled = false;
+		}
+
+		// Displays the time as a string including days, hours, minutes, and seconds
+		function displayTime(seconds) {
+			var secs,mins,hrs,days;
+			mins = Math.floor(seconds/60);
+			secs = (seconds % 60);
+			secs+= (secs == 1 ? " second " : " seconds ");
+			hrs  = Math.floor(mins/60);
+			mins = mins % 60;
+			mins+= (mins == 1 ? " minute " : " minutes ");
+			days = Math.floor(hrs/24);
+			hrs  = hrs % 24;
+			hrs += (hrs  == 1 ? " hour " : " hours ");
+			days+= (days == 1 ? " day " : " days ");
+			return days + hrs + mins + secs;
+		}
+
+		// Really the start/pause function; decides what to do based on the ticking attribute
+		function start(timer) {
+		 	if (timer.ticking) {
+		 		console.log("Stopping " + timer.clock);
+		 		timer.ticking = 0;
+		 		document.getElementById(timer.clock).style.color = "black";
+		 		document.getElementById(timer.button).innerHTML = "Start";
+		 		clearInterval(timer.counter);
+		 	} else {
+		 		timer.ticking = 1;
+		 		console.log("Starting " + timer.clock);
+		 		document.getElementById(timer.clock).style.color = "green";
+		 		document.getElementById(timer.button).innerHTML = "Pause";
+		 		timer.counter = window.setInterval(
+		 			function() { timer.func(timer) }, 1000);
+		 	}
+		}
+
+	</script>
+
+</head>
+<body>
+	<div class="container">
+		<div class="jumbotron">
+			<h1>How Long Does It Take?</h1>
+			<p>A simple online timer for your basic timekeeping purposes.</p>
+		</div>
+	</div>
+
+	<div id="stopwatches" class="padded">
+		<div id="input">
+			<h2>How Many Seconds?</h2>
+			<input id="countTargetInput" type="number" value=0 autofocus><br>
+			<button id="set" onclick="setCountTarget()">Set Timers</button>
+		</div>
+		<br><br>
+		<div id="watchUp">
+			<h4>Timer 1: Counting Up</h4> 
+			<p id="clock1" class="display">0 days 0 hours 0 minutes 0 seconds</p>
+			<button id="startUp" onclick="start(timer1)">Start</button>
+			<button id="resetUp" onclick="reset(timer1)">Reset</button>
+		</div>
+		<br><br>
+		<div id="watchDown">
+			<h4>Timer 2: Counting Down</h4>
+			<p id="clock2" class="display">0 days 0 hours 0 minutes 0 seconds</p>
+			<button id="startDown" onclick="start(timer2)">Start</button>
+			<button id="resetDown" onclick="reset(timer2)">Reset</button>
+		</div>
+		<br>
+	</div>
+
+	<hr>
+
+	<div>
+		<h3>How do I use this?</h3>
+		<p>
+			Enter a number of seconds into the input field and click to set the two timers. The first will count up from zero seconds to the target amount of seconds, and the second will count down from the target to zero seconds. When there are three seconds remaining, the display will turn red.
+		</p>
+		<p>
+			After a timer reaches its time limit, its display will turn blue, and its Start/Pause button will be disabled. When this happens, fret not! The reset button will cause that timer (and that timer only) to the original value.
+		</p>
+		<p>
+			Do note that entering a value into the input field and pressing the Set button will reset both timers to their new values.
+		</p>
+		<br>
+		<p class="note">
+			<span style="font-weight:bold">Note:</span> This page may not display correctly if viewed from <code>file:///</code>. Please consider using a local test server.
+		</p>
+	</div>
+
+	<hr>
+
+	<div id="footer">
+		<p>Created by Patrick Gan.</p>
+		<p><a href="mailto:patrickgan2005@gmail.com">patrickgan2005@gmail.com</a></p>
+	</div>
+</body>
+</html>
